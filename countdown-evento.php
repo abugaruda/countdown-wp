@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Countdown Evento
  * Description: Imposta titolo e scadenza di un countdown da mostrare come widget o con lo shortcode [countdown].
- * Version: 1.1.0
+ * Version: 1.1.1
  * Requires at least: 5.3
  * Requires PHP: 7.4
  */
@@ -181,7 +181,11 @@ function render_countdown( $title, $deadline ) {
 		return '';
 	}
 
-	wp_enqueue_script( PAGE, plugins_url( 'assets/countdown.js', __FILE__ ), array(), '1.0.0', true );
+	$is_italian  = 1 === preg_match( '/^it(?:[_-]|$)/i', get_locale() );
+	$date_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+	$date_text   = $is_italian ? wp_date( $date_format, $deadline->getTimestamp() ) : $deadline->format( $date_format );
+
+	wp_enqueue_script( PAGE, plugins_url( 'assets/countdown.js', __FILE__ ), array(), '1.1.1', true );
 	wp_enqueue_style( PAGE, plugins_url( 'assets/countdown.css', __FILE__ ), array(), '1.0.0' );
 
 	ob_start();
@@ -190,10 +194,10 @@ function render_countdown( $title, $deadline ) {
 		<?php if ( '' !== $title ) : ?>
 			<h4 class="countdown-title"><?php echo esc_html( $title ); ?></h4>
 		<?php endif; ?>
-		<div class="countdown-evento" role="timer" aria-live="off"
+		<div class="countdown-evento" role="timer" aria-live="off" lang="<?php echo $is_italian ? 'it' : 'en'; ?>"
 			data-deadline="<?php echo esc_attr( $deadline->getTimestamp() ); ?>">
 			<time datetime="<?php echo esc_attr( $deadline->format( DATE_ATOM ) ); ?>">
-				<?php echo esc_html( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $deadline->getTimestamp() ) ); ?>
+				<?php echo esc_html( $date_text ); ?>
 			</time>
 		</div>
 	</div>

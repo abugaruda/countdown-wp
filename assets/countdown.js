@@ -1,12 +1,11 @@
 (() => {
     'use strict';
 
-    const units = [
-        { seconds: 86400, singular: 'Giorno', plural: 'Giorni' },
-        { seconds: 3600, singular: 'Ora', plural: 'Ore' },
-        { seconds: 60, singular: 'Minuto', plural: 'Minuti' },
-        { seconds: 1, singular: 'Secondo', plural: 'Secondi' },
-    ];
+    const units = [86400, 3600, 60, 1];
+    const labels = {
+        it: [['Giorno', 'Giorni'], ['Ora', 'Ore'], ['Minuto', 'Minuti'], ['Secondo', 'Secondi']],
+        en: [['Day', 'Days'], ['Hour', 'Hours'], ['Minute', 'Minutes'], ['Second', 'Seconds']],
+    };
 
     function startCountdown(element) {
         const deadline = Number(element.dataset.deadline) * 1000;
@@ -14,7 +13,8 @@
             return;
         }
 
-        const counters = units.map((unit) => {
+        const unitLabels = element.lang === 'it' ? labels.it : labels.en;
+        const counters = units.map((seconds, index) => {
             const part = document.createElement('span');
             const value = document.createElement('span');
             const label = document.createElement('span');
@@ -23,7 +23,8 @@
             value.className = 'countdown-evento-value';
             part.append(value, ' ', label);
 
-            return { unit, part, value, label };
+            const [singular, plural] = unitLabels[index];
+            return { seconds, part, value, label, singular, plural };
         });
         element.replaceChildren(...counters.map(({ part }) => part));
 
@@ -31,11 +32,11 @@
             const millisecondsLeft = Math.max(0, deadline - Date.now());
             let secondsLeft = Math.ceil(millisecondsLeft / 1000);
 
-            counters.forEach(({ unit, value, label }) => {
-                const amount = Math.floor(secondsLeft / unit.seconds);
-                secondsLeft %= unit.seconds;
+            counters.forEach(({ seconds, value, label, singular, plural }) => {
+                const amount = Math.floor(secondsLeft / seconds);
+                secondsLeft %= seconds;
                 value.textContent = String(amount).padStart(2, '0');
-                label.textContent = amount === 1 ? unit.singular : unit.plural;
+                label.textContent = amount === 1 ? singular : plural;
             });
 
             if (millisecondsLeft > 0) {
