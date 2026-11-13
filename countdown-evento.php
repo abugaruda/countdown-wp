@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Countdown Evento
- * Description: Imposta titolo e scadenza di un countdown da mostrare con lo shortcode [countdown].
- * Version: 1.0.0
+ * Description: Imposta titolo e scadenza di un countdown da mostrare come widget o con lo shortcode [countdown].
+ * Version: 1.1.0
  * Requires at least: 5.3
  * Requires PHP: 7.4
  */
@@ -17,6 +17,7 @@ const PAGE   = 'countdown-evento';
 add_action( 'admin_init', __NAMESPACE__ . '\\register_settings' );
 add_action( 'admin_menu', __NAMESPACE__ . '\\register_page' );
 add_action( 'init', __NAMESPACE__ . '\\register_shortcode', 20 );
+add_action( 'widgets_init', __NAMESPACE__ . '\\register_countdown_widget' );
 
 function register_page() {
 	add_options_page( 'Countdown', 'Countdown', 'manage_options', PAGE, __NAMESPACE__ . '\\render_page' );
@@ -119,13 +120,44 @@ function render_page() {
 			</table>
 			<?php submit_button(); ?>
 		</form>
-		<p>Inserisci <code>[countdown]</code> nel punto in cui vuoi mostrare il conto alla rovescia.</p>
+	<p>Inserisci <code>[countdown]</code> nel contenuto o aggiungi il widget <strong>Countdown Evento</strong> da <strong>Aspetto → Widget</strong>.</p>
 	</div>
 	<?php
 }
 
 function register_shortcode() {
 	add_shortcode( 'countdown', __NAMESPACE__ . '\\render_shortcode' );
+}
+
+function register_countdown_widget() {
+	register_widget( Countdown_Widget::class );
+}
+
+class Countdown_Widget extends \WP_Widget {
+	public function __construct() {
+		parent::__construct(
+			'countdown_evento',
+			'Countdown Evento',
+			array( 'description' => 'Mostra il conto alla rovescia configurato in Impostazioni → Countdown.' )
+		);
+	}
+
+	public function widget( $args, $instance ) {
+		$settings  = get_settings();
+		$countdown = render_countdown( $settings['title'], parse_deadline( $settings['deadline'] ) );
+
+		if ( '' === $countdown ) {
+			return;
+		}
+
+		// The theme supplies the surrounding widget markup.
+		echo $args['before_widget'] . $countdown . $args['after_widget'];
+	}
+
+	public function form( $instance ) {
+		echo '<p>Imposta titolo e scadenza in <strong>Impostazioni → Countdown</strong>.</p>';
+		return 'noform';
+	}
 }
 
 function render_shortcode( $atts ) {
@@ -141,8 +173,10 @@ function render_shortcode( $atts ) {
 		$atts,
 		'countdown'
 	);
-	$deadline = parse_deadline( $atts['date'] . 'T' . $atts['time'] );
+	return render_countdown( $atts['title'], parse_deadline( $atts['date'] . 'T' . $atts['time'] ) );
+}
 
+function render_countdown( $title, $deadline ) {
 	if ( ! $deadline ) {
 		return '';
 	}
@@ -153,8 +187,8 @@ function render_shortcode( $atts ) {
 	ob_start();
 	?>
 	<div class="countdown-wrapper">
-		<?php if ( '' !== $atts['title'] ) : ?>
-			<h4 class="countdown-title"><?php echo esc_html( $atts['title'] ); ?></h4>
+		<?php if ( '' !== $title ) : ?>
+			<h4 class="countdown-title"><?php echo esc_html( $title ); ?></h4>
 		<?php endif; ?>
 		<div class="countdown-evento" role="timer" aria-live="off"
 			data-deadline="<?php echo esc_attr( $deadline->getTimestamp() ); ?>">
