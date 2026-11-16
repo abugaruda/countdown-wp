@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Countdown Evento
  * Description: Imposta titolo e scadenza di un countdown da mostrare come widget o con lo shortcode [countdown].
- * Version: 1.1.1
+ * Version: 1.1.2
  * Requires at least: 5.3
  * Requires PHP: 7.4
  */
@@ -185,7 +185,7 @@ function render_countdown( $title, $deadline ) {
 	$date_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 	$date_text   = $is_italian ? wp_date( $date_format, $deadline->getTimestamp() ) : $deadline->format( $date_format );
 
-	wp_enqueue_script( PAGE, plugins_url( 'assets/countdown.js', __FILE__ ), array(), '1.1.1', true );
+	wp_enqueue_script( PAGE, plugins_url( 'assets/countdown.js', __FILE__ ), array(), '1.1.2', true );
 	wp_enqueue_style( PAGE, plugins_url( 'assets/countdown.css', __FILE__ ), array(), '1.0.0' );
 
 	ob_start();

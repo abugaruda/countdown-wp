@@ -21,6 +21,7 @@
 
             part.className = 'countdown-evento-unit';
             value.className = 'countdown-evento-value';
+            label.className = 'countdown-evento-label';
             part.append(value, ' ', label);
 
             const [singular, plural] = unitLabels[index];
